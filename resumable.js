@@ -584,6 +584,7 @@
       $.retries = 0;
       $.pendingRetry = false;
       $.preprocessState = 0; // 0 = unprocessed, 1 = processing, 2 = finished
+      $.noNeedUpload = false;
 
       // Computed properties
       var chunkSize = $.getOpt('chunkSize');
@@ -598,6 +599,20 @@
 
       // test() makes a GET request without any data to see if the chunk has already been uploaded in a previous session
       $.test = function(){
+        // Check if exists from local config
+        var testChunksFunc = $.getOpt('testChunksFunc');
+        if (testChunksFunc) {
+          if (testChunksFunc($.fileObj, $)) {
+              setTimeout(function () {
+                $.noNeedUpload = true;
+                var status = $.status();
+                $.callback(status, 'no need upload');
+                $.resumableObj.uploadNextChunk();
+              }, 0);
+              return;
+          }
+        }
+
         // Set up request and listen for event
         $.xhr = new XMLHttpRequest();
 
@@ -777,6 +792,9 @@
           // there might just be a slight delay before the retry starts
           return('uploading');
         } else if(!$.xhr) {
+          if ($.noNeedUpload) {
+              return('success');
+          }
           return('pending');
         } else if($.xhr.readyState<4) {
           // Status is really 'OPENED', 'HEADERS_RECEIVED' or 'LOADING' - meaning that stuff is happening

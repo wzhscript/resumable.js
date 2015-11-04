@@ -19,6 +19,7 @@
 
       <h3>Demo</h3>
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
       <script src="resumable.js"></script>
 
       <div class="resumable-error">
@@ -28,7 +29,7 @@
       <div class="resumable-drop" ondragenter="jQuery(this).addClass('resumable-dragover');" ondragend="jQuery(this).removeClass('resumable-dragover');" ondrop="jQuery(this).removeClass('resumable-dragover');">
         Drop video files here to upload or <a class="resumable-browse"><u>select from your computer</u></a>
       </div>
-      
+
       <div class="resumable-progress">
         <table>
           <tr>
@@ -42,7 +43,7 @@
           </tr>
         </table>
       </div>
-      
+
       <ul class="resumable-list"></ul>
 
       <script>
@@ -50,8 +51,15 @@
             target:'/upload',
             chunkSize:1*1024*1024,
             simultaneousUploads:4,
-            testChunks:false,
-            throttleProgressCallbacks:1
+            testChunks:true,
+            testChunksFunc: function (file, chunk) {
+                if (chunk.offset < 100) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
           });
         // Resumable.js isn't supported, fall back on a different method
         if(!r.support) {
@@ -111,6 +119,3 @@
     </div>
   </body>
 </html>
-
-
-    
