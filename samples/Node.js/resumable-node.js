@@ -7,6 +7,7 @@ module.exports = resumable = function(temporaryFolder){
   $.temporaryFolder = temporaryFolder;
   $.maxFileSize = null;
   $.fileParameterName = 'file';
+  $.uploadingFiles = {};
 
   try {
     fs.mkdirSync($.temporaryFolder);
@@ -19,14 +20,14 @@ module.exports = resumable = function(temporaryFolder){
 
   var getChunkFilename = function(chunkNumber, identifier){
     // Clean up the identifier
-    identifier = cleanIdentifier(identifier);
+    // identifier = cleanIdentifier(identifier);
     // What would the file name be?
-    return path.join($.temporaryFolder, './resumable-'+identifier+'.'+chunkNumber);
+    return path.join($.temporaryFolder, './'+identifier+'.'+chunkNumber);
   }
 
   var validateRequest = function(chunkNumber, chunkSize, totalSize, identifier, filename, fileSize){
     // Clean up the identifier
-    identifier = cleanIdentifier(identifier);
+    // identifier = cleanIdentifier(identifier);
 
     // Check if the request is sane
     if (chunkNumber==0 || chunkSize==0 || totalSize==0 || identifier.length==0 || filename.length==0) {
@@ -93,12 +94,22 @@ module.exports = resumable = function(temporaryFolder){
     var files = req.files;
 
     var chunkNumber = fields['resumableChunkNumber'];
+    var totalChuncks = fields['resumableTotalChunks'];
     var chunkSize = fields['resumableChunkSize'];
     var totalSize = fields['resumableTotalSize'];
     var identifier = cleanIdentifier(fields['resumableIdentifier']);
     var filename = fields['resumableFilename'];
 
-		var original_filename = fields['resumableIdentifier'];
+    // memory caching of uploading file infos
+    $.uploadingFiles[identifier] = $.uploadingFiles[identifier] || {
+        identifier: identifier,
+        filename: filename,
+        totalChuncks: parseInt(totalChuncks, 10),
+        uploadedChunks: {}
+    };
+    $.uploadingFiles[identifier].uploadedChunks[chunkNumber] = 1;
+
+	var original_filename = fields['resumableIdentifier'];
 
     if(!files[$.fileParameterName] || !files[$.fileParameterName].size) {
       callback('invalid_resumable_request', null, null, null);
@@ -207,6 +218,10 @@ module.exports = resumable = function(temporaryFolder){
       }
       pipeChunkRm(1);
   }
+
+  $.getUploadingFiles = function (req, callback) {
+      callback($.uploadingFiles);
+  };
 
   return $;
 }
