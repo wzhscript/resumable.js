@@ -47,20 +47,38 @@
       <ul class="resumable-list"></ul>
 
       <script>
+        var uploadingFiles = null;
+        $.ajax({
+            daaType: 'json',
+            url: '/uploadingFiles',
+            success: function (data) {
+                uploadingFiles = data;
+                var identifiers = Object.keys(uploadingFiles);
+                identifiers.forEach(function (identifier) {
+                    resumeFileInfo(uploadingFiles[identifier]);
+                });
+            }
+        });
+
         var r = new Resumable({
             target:'/upload',
             chunkSize:1*1024*1024,
             simultaneousUploads:4,
             testChunks:true,
             testChunksFunc: function (file, chunk) {
-                if (chunk.offset < 100) {
-                    return true;
+                var uploadingFile = uploadingFiles && uploadingFiles[file.uniqueIdentifier];
+                if (uploadingFile) {
+                    if (uploadingFile.progress === 100) {
+                        return true;
+                    }
+                    if (uploadingFile.uploadedChunks[chunk.offset + 1]) {
+                        return true;
+                    }
                 }
-                else {
-                    return false;
-                }
+                return false;
             }
           });
+
         // Resumable.js isn't supported, fall back on a different method
         if(!r.support) {
           $('.resumable-error').show();
@@ -78,8 +96,10 @@
               $('.resumable-progress .progress-resume-link').hide();
               $('.resumable-progress .progress-pause-link').show();
               // Add the file to the list
-              $('.resumable-list').append('<li class="resumable-file-'+file.uniqueIdentifier+'">Uploading <span class="resumable-file-name"></span> <span class="resumable-file-progress"></span>');
-              $('.resumable-file-'+file.uniqueIdentifier+' .resumable-file-name').html(file.fileName);
+              if ($('.resumable-file-'+file.uniqueIdentifier+' .resumable-file-name').length === 0) {
+                  $('.resumable-list').append('<li class="resumable-file-'+file.uniqueIdentifier+'">Uploading <span class="resumable-file-name"></span> <span class="resumable-file-progress"></span>');
+                  $('.resumable-file-'+file.uniqueIdentifier+' .resumable-file-name').html(file.fileName);
+              }
               // Actually start the upload
               r.upload();
             });
@@ -113,6 +133,13 @@
               $('.resumable-progress .progress-resume-link').hide();
               $('.resumable-progress .progress-pause-link').show();
           });
+        }
+
+        function resumeFileInfo(uploadingFile) {
+            // Add the file to the list
+            $('.resumable-list').show();
+            $('.resumable-list').append('<li class="resumable-file-'+uploadingFile.identifier+'">Uploading <span class="resumable-file-name"></span> <span class="resumable-file-progress"></span>');
+            $('.resumable-file-'+uploadingFile.identifier+' .resumable-file-name').html(uploadingFile.filename + ' (' + uploadingFile.progress + '%)');
         }
       </script>
 

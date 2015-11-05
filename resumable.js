@@ -50,6 +50,7 @@
       target:'/',
       parameterNamespace:'',
       testChunks:true,
+      testChunksFunc: null,
       generateUniqueIdentifier:null,
       getTarget:null,
       maxChunkRetries:undefined,

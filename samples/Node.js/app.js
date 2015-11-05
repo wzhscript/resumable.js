@@ -40,7 +40,13 @@ app.get('/upload', function(req, res){
         console.log('GET', status);
         res.send((status == 'found' ? 200 : 404), status);
       });
-  });
+});
+
+app.get('/uploadingFiles', function (req, res) {
+    resumable.getUploadingFiles(req, function(uploadingFiles){
+        res.send(uploadingFiles);
+    });
+});
 
 app.get('/download/:identifier', function(req, res){
 	resumable.write(req.params.identifier, res);
