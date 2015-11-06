@@ -137,16 +137,9 @@
 
         function resumeFileInfo(uploadingFile) {
             // Add the file to the list
-<<<<<<< HEAD
             $('.resumable-list').show();
             $('.resumable-list').append('<li class="resumable-file-'+uploadingFile.identifier+'">Uploading <span class="resumable-file-name"></span> <span class="resumable-file-progress"></span>');
             $('.resumable-file-'+uploadingFile.identifier+' .resumable-file-name').html(uploadingFile.filename + ' (' + uploadingFile.progress + '%)');
-=======
-            var progress = Math.floor(Object.keys(uploadingFile.uploadedChunks).length * 100.0 / uploadingFile.totalChuncks) + '%';
-            $('.resumable-list').show();
-            $('.resumable-list').append('<li class="resumable-file-'+uploadingFile.identifier+'">Uploading <span class="resumable-file-name"></span> <span class="resumable-file-progress"></span>');
-            $('.resumable-file-'+uploadingFile.identifier+' .resumable-file-name').html(uploadingFile.filename + ' (' + progress + ')');
->>>>>>> 49aea7bdd708327a6e1b0e21e6ade8fb0d19e1b1
         }
       </script>
 
